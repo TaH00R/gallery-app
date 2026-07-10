@@ -1,4 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- Internet (GitHub, updates, etc.) -->
+<uses-permission android:name="android.permission.INTERNET"/>
+
+<!-- Read media (Android 13+) -->
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+
+<!-- Read external storage (Android 12 and below) -->
+<uses-permission
+    android:name="android.permission.READ_EXTERNAL_STORAGE"
+    android:maxSdkVersion="32"/>
+
+<!-- Write external storage (Android 9 and below) -->
+<uses-permission
+    android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    android:maxSdkVersion="28"/>
     <application
         android:label="gallery"
         android:name="${applicationName}"

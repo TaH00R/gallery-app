@@ -25,4 +25,8 @@ class AppColors {
   // Misc
   static const Color divider = Color(0xFFE0D4C2);
   static const Color shadow = Color(0x22000000);
+
+  //AppBar Colors
+  static const Color appBarBackground = Color(0xFF8D6E63);
+  static const Color appBarForeground = Color(0xFFFFFFFF);
 }
