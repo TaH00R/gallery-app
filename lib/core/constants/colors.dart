@@ -29,4 +29,13 @@ class AppColors {
   //AppBar Colors
   static const Color appBarBackground = Color(0xFF8D6E63);
   static const Color appBarForeground = Color(0xFFFFFFFF);
+
+  //About Screen Colors
+  static const Color aboutBackground = Color(0xFFF8F5F0);
+  static const Color chipColor = Color(0xFF5D4037);
+  static const Color iconBackground = Color(0xFFD7CCC8);
+
+  // Bottom Navigation Bar Colors
+  static const Color bottomNavBarBackground = Color(0xFF5D4037);
+  static const Color bottomNavBarForeground = Color(0xFFFFFFFF);
 }

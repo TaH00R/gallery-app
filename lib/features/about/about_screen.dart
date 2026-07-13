@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gallery/core/constants/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:gallery/shared/widgets/appbar.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -29,10 +29,10 @@ class AboutScreen extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: CircleAvatar(
         radius: 22,
-        backgroundColor: Colors.brown.shade100,
+        backgroundColor: AppColors.iconBackground,
         child: Icon(
           icon,
-          color: Colors.brown.shade700,
+          color: AppColors.chipColor,
         ),
       ),
       title: Text(
@@ -48,9 +48,6 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const GalleryAppBar(
-        title: "ABOUT",
-      ),
       backgroundColor: const Color(0xffF8F5F0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
@@ -109,7 +106,7 @@ class AboutScreen extends StatelessWidget {
                     label: Text(
                       "Version 1.0.0",
                       style: TextStyle(
-                        color: Colors.brown.shade800,
+                        color: AppColors.chipColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
