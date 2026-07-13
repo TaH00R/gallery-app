@@ -32,9 +32,11 @@ class GalleryBottomNavBar extends StatelessWidget {
           AnimatedAlign(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutBack,
-            alignment: selectedIndex == 0
-                ? const Alignment(-0.52, 0)
-                : const Alignment(0.52, 0),
+            alignment: switch (selectedIndex) {
+  0 => const Alignment(-0.67, 0),
+  1 => const Alignment(0.0, 0),
+  _ => const Alignment(0.67, 0),
+},
             child: Transform.translate(
               offset: const Offset(0, -16),
               child: Container(
@@ -83,9 +85,16 @@ class GalleryBottomNavBar extends StatelessWidget {
                 onTap: onTap,
               ),
               _NavButton(
+                icon: Icons.photo_album_rounded,
+                label: 'Albums',
+                index: 1,
+                selectedIndex: selectedIndex,
+                onTap: onTap,
+              ),
+              _NavButton(
                 icon: Icons.question_mark_outlined,
                 label: 'About',
-                index: 1,
+                index: 2,
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
