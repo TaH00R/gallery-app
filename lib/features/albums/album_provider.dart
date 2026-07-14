@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gallery/features/albums/album_service.dart';
+import 'package:gallery/core/services/album_service.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumProvider extends ChangeNotifier {
