@@ -161,9 +161,10 @@ class _GalleryState extends State<Gallery> {
             final asset = assets[index];
 
             return AssetThumbnail(
+              key: ValueKey(asset.id),
               asset: asset,
               isSelected: selectedAssets.contains(asset),
-
+              
               onTap: () {
                 if (selectionMode) {
                   _toggleSelection(asset);
