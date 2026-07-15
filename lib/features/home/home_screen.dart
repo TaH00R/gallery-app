@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gallery/features/about/about_screen.dart';
 import 'package:gallery/features/albums/album_screen.dart';
+import 'package:gallery/features/gallery/gallery.dart';
 import 'package:gallery/shared/widgets/appbar.dart';
 import 'package:gallery/shared/widgets/bottom_navbar.dart';
 
@@ -15,8 +16,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
 
   List<String> titles = [
-    'ABOUT',
+    'GALLERY',
     'ALBUMS',
+    'ABOUT',
   ];
 
   @override
@@ -29,8 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   body: IndexedStack(
     index: selectedIndex,
     children: const [
-      AboutScreen(),
+      Gallery(),
       AlbumScreen(),
+      AboutScreen(),
         ],
   ),
   bottomNavigationBar: GalleryBottomNavBar(
