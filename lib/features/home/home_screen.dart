@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
   body: IndexedStack(
     index: selectedIndex,
-    children: const [
+    children: [
       Gallery(),
       AlbumScreen(),
       AboutScreen(),
