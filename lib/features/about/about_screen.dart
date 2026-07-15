@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gallery/core/constants/colors.dart';
+import 'package:gallery/shared/widgets/appbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 
@@ -48,6 +49,10 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: GalleryAppBar(title: 'ABOUT'),
+      ),
       backgroundColor: const Color(0xffF8F5F0),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),

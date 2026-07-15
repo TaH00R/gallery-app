@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:gallery/features/gallery/components/asset_thumbnail.dart';
 import 'package:gallery/features/gallery/components/image_view.dart';
 import 'package:gallery/features/gallery/components/video_view.dart';
+import 'package:gallery/shared/widgets/appbar.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class Gallery extends StatefulWidget {
@@ -14,19 +15,13 @@ class Gallery extends StatefulWidget {
 
 class _GalleryState extends State<Gallery> {
   List<AssetEntity> assets = [];
-
+  bool _isDeleting = false;
   final Set<AssetEntity> selectedAssets = {};
-
   bool selectionMode = false;
 
   Future<void> _fetchAssets() async {
-    final result = await PhotoManager.getAssetListRange(
-      start: 0,
-      end: 1000000,
-    );
-
+    final result = await PhotoManager.getAssetListRange(start: 0, end: 1000000);
     if (!mounted) return;
-
     setState(() {
       assets = result;
     });
@@ -90,9 +85,67 @@ class _GalleryState extends State<Gallery> {
     super.dispose();
   }
 
+  Future<void> _deleteSelected() async {
+    if (_isDeleting || selectedAssets.isEmpty) return;
+
+    final ids = selectedAssets.map((e) => e.id).toList();
+
+    setState(() {
+      _isDeleting = true;
+    });
+
+    try {
+      final deletedIds = await PhotoManager.editor.deleteWithIds(ids);
+
+      if (!mounted) return;
+
+      if (deletedIds.isNotEmpty) {
+        setState(() {
+          assets.removeWhere((asset) => deletedIds.contains(asset.id));
+          selectedAssets.clear();
+          selectionMode = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeleting = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _shareSelected() async {
+    // TODO
+  }
+
+  Future<void> _moveSelected() async {
+    // TODO
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: GalleryAppBar(
+          selectionMode: selectionMode,
+          selectedCount: selectedAssets.length,
+
+          onCloseSelection: () {
+            setState(() {
+              selectionMode = false;
+              selectedAssets.clear();
+            });
+          },
+
+          isDeleting: _isDeleting,
+          onDelete: _deleteSelected,
+          onShare: _shareSelected,
+          onMove: _moveSelected,
+        ),
+      ),
+
       body: GestureDetector(
         // onPanStart:
         // onPanUpdate:
