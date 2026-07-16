@@ -5,6 +5,7 @@ import 'package:gallery/features/gallery/components/image_view.dart';
 import 'package:gallery/features/gallery/components/video_view.dart';
 import 'package:gallery/shared/widgets/appbar.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:share_plus/share_plus.dart';
 
 class Gallery extends StatefulWidget {
   const Gallery({super.key});
@@ -115,9 +116,23 @@ class _GalleryState extends State<Gallery> {
     }
   }
 
-  Future<void> _shareSelected() async {
-    // TODO
+
+Future<void> shareAssets(List<AssetEntity> assets) async {
+  final files = <XFile>[];
+
+  for (final asset in assets) {
+    final file = await asset.originFile;
+    if (file != null) {
+      files.add(XFile(file.path));
+    }
   }
+
+  if (files.isEmpty) return;
+
+  await SharePlus.instance.share(
+    ShareParams(files: files),
+  );
+}
 
   Future<void> _moveSelected() async {
     // TODO
@@ -141,7 +156,7 @@ class _GalleryState extends State<Gallery> {
 
           isDeleting: _isDeleting,
           onDelete: _deleteSelected,
-          onShare: _shareSelected,
+          onShare: () => shareAssets(selectedAssets.toList()),
           onMove: _moveSelected,
         ),
       ),
