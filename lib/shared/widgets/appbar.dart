@@ -79,9 +79,7 @@ class GalleryAppBar extends StatelessWidget implements PreferredSizeWidget {
       ]
     : null,
 
-      flexibleSpace: selectionMode
-          ? null
-          : Stack(
+      flexibleSpace: Stack(
               alignment: Alignment.center,
               children: [
                 Positioned(
