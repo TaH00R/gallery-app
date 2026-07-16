@@ -46,6 +46,7 @@ class _VideoViewState extends State<VideoView> {
     return Scaffold(
       body: initialized ?
        Scaffold(
+        backgroundColor: Colors.black,
          body: Center(
            child: AspectRatio(
             aspectRatio: _videoPlayerController.value.aspectRatio,

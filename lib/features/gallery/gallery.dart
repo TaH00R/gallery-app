@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gallery/features/gallery/components/asset_thumbnail.dart';
-import 'package:gallery/features/gallery/components/image_view.dart';
-import 'package:gallery/features/gallery/components/video_view.dart';
+import 'package:gallery/features/gallery/components/gallery_viewer.dart';
 import 'package:gallery/shared/widgets/appbar.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
@@ -49,20 +48,17 @@ class _GalleryState extends State<Gallery> {
     });
   }
 
-  void _openAsset(AssetEntity asset) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) {
-          if (asset.type == AssetType.video) {
-            return VideoView(videoFile: asset.file);
-          }
-
-          return ImageView(imageFile: asset.file);
-        },
+void _openAsset(int index) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => GalleryViewer(
+        assets: assets,
+        initialIndex: index,
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _onGalleryChanged(MethodCall call) {
     _fetchAssets();
@@ -184,7 +180,7 @@ Future<void> shareAssets(List<AssetEntity> assets) async {
                 if (selectionMode) {
                   _toggleSelection(asset);
                 } else {
-                  _openAsset(asset);
+                  _openAsset(index);
                 }
               },
 
