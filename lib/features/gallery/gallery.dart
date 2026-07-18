@@ -21,6 +21,7 @@ class Gallery extends StatefulWidget {
 
 class _GalleryState extends State<Gallery> {
   final ScrollController _scrollController = ScrollController();
+  List<AssetEntity> allAssets = [];
   List<AssetEntity> assets = [];
   bool _isDeleting = false;
   final Set<AssetEntity> selectedAssets = {};
@@ -41,8 +42,29 @@ class _GalleryState extends State<Gallery> {
     if (!mounted) return;
 
     setState(() {
-      assets = result;
+      allAssets = result;
+      _applyFilter();
     });
+  }
+
+  void _applyFilter() {
+    switch (selectedFilter) {
+      case 0: // All
+        assets = List.from(allAssets);
+        break;
+
+      case 1: // Photos
+        assets = allAssets.where((a) => a.type == AssetType.image).toList();
+        break;
+
+      case 2: // Videos
+        assets = allAssets.where((a) => a.type == AssetType.video).toList();
+        break;
+
+      case 3: // Favorites
+        assets = allAssets.where((a) => a.isFavorite).toList();
+        break;
+    }
   }
 
   void _toggleSelection(AssetEntity asset) {
@@ -144,9 +166,27 @@ class _GalleryState extends State<Gallery> {
     await SharePlus.instance.share(ShareParams(files: files));
   }
 
-  Future<void> _moveSelected() async {
-    // TODO
+  Future<void> _toggleFavoriteSelected() async {
+  if (selectedAssets.isEmpty) return;
+
+  final makeFavorite = !selectedAssets.every((e) => e.isFavorite);
+
+  for (final asset in selectedAssets) {
+    await PhotoManager.plugin.favoriteAsset(
+      asset.id,
+      makeFavorite,
+    );
   }
+
+  await _fetchAssets();
+
+  if (!mounted) return;
+
+  setState(() {
+    selectedAssets.clear();
+    selectionMode = false;
+  });
+}
 
   Map<DateTime, List<AssetEntity>> _groupAssetsByDay() {
     final Map<DateTime, List<AssetEntity>> grouped = {};
@@ -182,8 +222,6 @@ class _GalleryState extends State<Gallery> {
   Widget build(BuildContext context) {
     final groupedAssets = _groupAssetsByDay();
     final days = groupedAssets.entries.toList();
-    final photos = assets.where((a) => a.type == AssetType.image).length;
-    final videos = assets.where((a) => a.type == AssetType.video).length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -204,7 +242,8 @@ class _GalleryState extends State<Gallery> {
           isDeleting: _isDeleting,
           onDelete: _deleteSelected,
           onShare: () => shareAssets(selectedAssets.toList()),
-          onMove: _moveSelected,
+          onFavorite: _toggleFavoriteSelected,
+          isFavorite: selectedAssets.isNotEmpty && selectedAssets.every((e) => e.isFavorite), 
         ),
       ),
 
@@ -230,25 +269,40 @@ class _GalleryState extends State<Gallery> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _chip(Icons.apps, "All", true),
+                      _chip(icon: Icons.apps, text: "All", index: 0),
                       const SizedBox(width: 8),
-                      _chip(Icons.image_outlined, "$photos", false),
+                      _chip(
+                        icon: Icons.image_outlined,
+                        text: "IMG",
+                        index: 1,
+                      ),
                       const SizedBox(width: 8),
-                      _chip(Icons.videocam_outlined, "$videos", false),
+                      _chip(
+                        icon: Icons.videocam_outlined,
+                        text: "VID",
+                        index: 2,
+                      ),
                       const SizedBox(width: 8),
-                      _chip(Icons.favorite_border, "Favs", false),
+                      _chip(
+                        icon: Icons.favorite_border,
+                        text: "FAV",
+                        index: 3,
+                      ),
                     ],
                   ),
                 ),
               ),
-      
+
               ...days.map((entry) {
                 final date = entry.key;
                 final dayAssets = entry.value;
 
                 //Padding and container for each day with a grid of assets
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.0,
+                    vertical: 4.0,
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -284,9 +338,9 @@ class _GalleryState extends State<Gallery> {
                                   color: Colors.black87,
                                 ),
                               ),
-                        
+
                               const Spacer(),
-                        
+
                               Text(
                                 "${dayAssets.length} items",
                                 style: TextStyle(
@@ -300,38 +354,44 @@ class _GalleryState extends State<Gallery> {
 
                         // Grid of assets for the day
                         Padding(
-                          padding: const EdgeInsets.only(left: 10.0, right: 10.0, bottom: 5.0),
+                          padding: const EdgeInsets.only(
+                            left: 10.0,
+                            right: 10.0,
+                            bottom: 5.0,
+                          ),
                           child: GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                          
+
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                   crossAxisSpacing: 8,
                                   mainAxisSpacing: 8,
                                 ),
-                          
+
                             itemCount: dayAssets.length,
-                          
+
                             itemBuilder: (_, index) {
                               final asset = dayAssets[index];
-                          
+
                               return AssetThumbnail(
                                 key: ValueKey(asset.id),
                                 asset: asset,
                                 isSelected: selectedAssets.contains(asset),
-                          
+
                                 onTap: () {
                                   if (selectionMode) {
                                     _toggleSelection(asset);
                                   } else {
                                     _openAsset(
-                                      assets.indexWhere((a) => a.id == asset.id),
+                                      assets.indexWhere(
+                                        (a) => a.id == asset.id,
+                                      ),
                                     );
                                   }
                                 },
-                          
+
                                 onLongPress: () {
                                   _startSelection(asset);
                                 },
@@ -339,7 +399,7 @@ class _GalleryState extends State<Gallery> {
                             },
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -353,29 +413,49 @@ class _GalleryState extends State<Gallery> {
     );
   }
 
-  Widget _chip(IconData icon, String text, bool selected) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.primary : Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(blurRadius: 10, color: Colors.black.withValues(alpha: .06)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: selected ? Colors.white : Colors.black87),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: TextStyle(
-              color: selected ? Colors.white : Colors.black87,
-              fontWeight: FontWeight.w600,
+  Widget _chip({
+    required IconData icon,
+    required String text,
+    required int index,
+  }) {
+    final selected = selectedFilter == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedFilter = index;
+          _applyFilter();
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              blurRadius: 10,
+              color: Colors.black.withValues(alpha: .06),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected ? Colors.white : Colors.black87,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: TextStyle(
+                color: selected ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

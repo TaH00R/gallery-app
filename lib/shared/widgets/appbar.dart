@@ -12,7 +12,8 @@ class GalleryAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onCloseSelection;
   final VoidCallback? onDelete;
   final VoidCallback? onShare;
-  final VoidCallback? onMove;
+  final VoidCallback? onFavorite;
+  final bool isFavorite;
 
   final String title;
 
@@ -24,8 +25,9 @@ class GalleryAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onCloseSelection,
     this.onDelete,
     this.onShare,
-    this.onMove,
+    this.onFavorite,
     this.title = 'GALLERY',
+    this.isFavorite = false,
   });
 
   @override
@@ -53,49 +55,58 @@ class GalleryAppBar extends StatelessWidget implements PreferredSizeWidget {
             : GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
       ),
 
-     actions: selectionMode
-    ? [
-        IconButton(
-          onPressed: isDeleting ? null : onShare,
-          icon: const Icon(Icons.share),
-        ),
-        IconButton(
-          onPressed: isDeleting ? null : onMove,
-          icon: const Icon(Icons.drive_file_move),
-        ),
-        IconButton(
-          onPressed: isDeleting ? null : onDelete,
-          icon: isDeleting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
+      actions: selectionMode
+          ? [
+              IconButton(
+                onPressed: isDeleting ? null : onShare,
+                icon: const Icon(Icons.share),
+              ),
+              IconButton(
+                onPressed: isDeleting ? null : onFavorite,
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    key: ValueKey(isFavorite),
+                    color: isFavorite ? Colors.deepOrangeAccent : null,
                   ),
-                )
-              : const Icon(Icons.delete),
-        ),
-      ]
-    : null,
+                ),
+              ),
+              IconButton(
+                onPressed: isDeleting ? null : onDelete,
+                icon: isDeleting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.delete),
+              ),
+            ]
+          : null,
 
       flexibleSpace: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 0,
+            child: Image.asset("assets/images/branch.png", height: 150),
+          ),
+          Positioned(
+            right: 0,
+            child: Transform(
               alignment: Alignment.center,
-              children: [
-                Positioned(
-                  left: 0,
-                  child: Image.asset("assets/images/branch.png", height: 150),
-                ),
-                Positioned(
-                  right: 0,
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.rotationY(pi),
-                    child: Image.asset("assets/images/branch.png", height: 150),
-                  ),
-                ),
-              ],
+              transform: Matrix4.rotationY(pi),
+              child: Image.asset("assets/images/branch.png", height: 150),
             ),
+          ),
+        ],
+      ),
     );
   }
 }
