@@ -13,7 +13,7 @@ class AlbumScreen extends StatelessWidget {
         child: GalleryAppBar(title: 'ALBUMS')
       ),
       body: SafeArea(
-        child: AlbumGrid(),
+          child: AlbumGrid(),
       ),
     );
   }

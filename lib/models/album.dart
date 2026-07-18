@@ -1,29 +1,16 @@
+import 'package:photo_manager/photo_manager.dart';
+
 class Album {
-  final String id;
-  final String name;
-  final String? coverPath;
-  final List<int> mediaIds;
+  final AssetPathEntity entity;
+  final AssetEntity? cover;
+  final int count;
 
   const Album({
-    required this.id,
-    required this.name,
-    this.coverPath,
-    this.mediaIds = const [],
+    required this.entity,
+    required this.cover,
+    required this.count,
   });
 
-  int get count => mediaIds.length;
-
-  Album copyWith({
-    String? id,
-    String? name,
-    String? coverPath,
-    List<int>? mediaIds,
-  }) {
-    return Album(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      coverPath: coverPath ?? this.coverPath,
-      mediaIds: mediaIds ?? this.mediaIds,
-    );
-  }
+  String get id => entity.id;
+  String get name => entity.name;
 }

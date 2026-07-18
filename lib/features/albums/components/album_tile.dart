@@ -1,44 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:gallery/models/album.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 class AlbumTile extends StatelessWidget {
-  final AssetPathEntity album;
+  final Album album;
 
   const AlbumTile(this.album, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<int>(
-      future: album.assetCountAsync,
-      builder: (context, snapshot) {
-        final count = snapshot.data ?? 0;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (album.cover != null)
+            AssetEntityImage(
+              album.cover!,
+              isOriginal: false,
+              thumbnailSize: const ThumbnailSize.square(400),
+              fit: BoxFit.cover,
+            )
+          else
+            Container(color: Colors.grey.shade300),
 
-        return Card(
-          elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.center,
+                colors: [
+                  Colors.black87,
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: 12,
+            right: 12,
+            bottom: 12,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.photo_album_outlined,
-                  size: 48,
-                ),
-                const SizedBox(height: 12),
                 Text(
                   album.name,
-                  textAlign: TextAlign.center,
                   style: const TextStyle(
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text("$count items"),
+                Text(
+                  "${album.count} items",
+                  style: const TextStyle(
+                    color: Colors.white70,
+                  ),
+                ),
               ],
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

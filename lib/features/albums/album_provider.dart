@@ -1,27 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gallery/core/services/album_service.dart';
+import 'package:gallery/models/album.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumProvider extends ChangeNotifier {
-  final AlbumService _albumService = AlbumService();
+  final AlbumService _service = AlbumService();
 
-  List<AssetPathEntity> _albums = [];
-  bool _isLoading = false;
+  List<Album> _albums = [];
+  bool _loading = false;
 
-  List<AssetPathEntity> get albums => _albums;
-  bool get isLoading => _isLoading;
+  bool _initialized = false;
+  bool _refreshing = false;
 
+  List<Album> get albums => _albums;
+  bool get isLoading => _loading;
+
+  /// Initialize provider and start listening for gallery changes.
+  Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
+    await loadAlbums();
+
+    PhotoManager.addChangeCallback(_onGalleryChanged);
+    PhotoManager.startChangeNotify();
+  }
+
+  /// Reload albums when the gallery changes.
+  Future<void> _onGalleryChanged(MethodCall call) async {
+    await loadAlbums();
+  }
+
+  /// Load all albums.
   Future<void> loadAlbums() async {
-    _isLoading = true;
+    if (_refreshing) return;
+    _refreshing = true;
+
+    _loading = true;
     notifyListeners();
 
-    final granted = await _albumService.requestPermission();
+    try {
+      final hasPermission = await _service.requestPermission();
 
-    if (granted) {
-      _albums = await _albumService.getAlbums();
+      if (!hasPermission) {
+        _albums = [];
+        return;
+      }
+
+      _albums = await _service.getAlbums();
+    } catch (e) {
+      debugPrint("AlbumProvider Error: $e");
+    } finally {
+      _loading = false;
+      _refreshing = false;
+      notifyListeners();
     }
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  @override
+  void dispose() {
+    PhotoManager.removeChangeCallback(_onGalleryChanged);
+    PhotoManager.stopChangeNotify();
+    super.dispose();
   }
 }

@@ -1,46 +1,46 @@
+import 'package:gallery/models/album.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class AlbumService {
-  /// Request gallery permission
   Future<bool> requestPermission() async {
     final permission = await PhotoManager.requestPermissionExtend();
     return permission.isAuth;
   }
 
-  /// Get all albums
-  Future<List<AssetPathEntity>> getAlbums() async {
-    return PhotoManager.getAssetPathList(
+  Future<List<Album>> getAlbums() async {
+    final paths = await PhotoManager.getAssetPathList(
       type: RequestType.common,
       hasAll: false,
     );
+
+    List<Album> albums = [];
+
+    for (final path in paths) {
+      final assets = await path.getAssetListPaged(
+        page: 0,
+        size: 1,
+      );
+
+      albums.add(
+        Album(
+          entity: path,
+          cover: assets.isEmpty ? null : assets.first,
+          count: await path.assetCountAsync,
+        ),
+      );
+    }
+
+    return albums;
   }
 
-  /// Get media from an album
-  Future<List<AssetEntity>> getAlbumMedia(
+  Future<List<AssetEntity>> getMedia(
     AssetPathEntity album, {
     int page = 0,
     int size = 100,
-  }) async {
+  }) {
     return album.getAssetListPaged(
       page: page,
       size: size,
     );
-  }
-
-  /// Number of items in an album
-  Future<int> getAlbumCount(AssetPathEntity album) async {
-    return album.assetCountAsync;
-  }
-
-  /// Cover image
-  Future<AssetEntity?> getAlbumCover(
-    AssetPathEntity album,
-  ) async {
-    final assets = await album.getAssetListPaged(
-      page: 0,
-      size: 1,
-    );
-
-    return assets.isEmpty ? null : assets.first;
   }
 }

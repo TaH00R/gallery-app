@@ -17,7 +17,7 @@ class _AlbumGridState extends State<AlbumGrid> {
 
     Future.microtask(() {
       // ignore: use_build_context_synchronously
-      context.read<AlbumProvider>().loadAlbums();
+      context.read<AlbumProvider>().initialize();
     });
   }
 
