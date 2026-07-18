@@ -1,3 +1,4 @@
+import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gallery/core/constants/colors.dart';
@@ -11,12 +12,14 @@ import 'package:intl/intl.dart';
 class Gallery extends StatefulWidget {
   final AssetPathEntity? album;
   const Gallery({super.key, this.album});
+  
 
   @override
   State<Gallery> createState() => _GalleryState();
 }
 
 class _GalleryState extends State<Gallery> {
+  final ScrollController _scrollController = ScrollController();
   List<AssetEntity> assets = [];
   bool _isDeleting = false;
   final Set<AssetEntity> selectedAssets = {};
@@ -84,8 +87,10 @@ class _GalleryState extends State<Gallery> {
 
   @override
   void dispose() {
-    PhotoManager.removeChangeCallback(_onGalleryChanged);
-    PhotoManager.stopChangeNotify();
+    _scrollController.dispose();
+
+      PhotoManager.removeChangeCallback(_onGalleryChanged);
+      PhotoManager.stopChangeNotify();
 
     super.dispose();
   }
@@ -155,28 +160,30 @@ class _GalleryState extends State<Gallery> {
   }
 
   String formatDate(DateTime date) {
-  final now = DateTime.now();
+    final now = DateTime.now();
 
-  final today = DateTime(now.year, now.month, now.day);
-  final target = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+    final target = DateTime(date.year, date.month, date.day);
 
-  final diff = today.difference(target).inDays;
+    final diff = today.difference(target).inDays;
 
-  if (diff == 0) return "Today";
-  if (diff == 1) return "Yesterday";
-  if (diff < 7) return DateFormat('EEEE').format(date);
+    if (diff == 0) return "Today";
+    if (diff == 1) return "Yesterday";
+    if (diff < 7) return DateFormat('EEEE').format(date);
 
-  return DateFormat('d MMMM yyyy').format(date);
-}
+    return DateFormat('d MMMM yyyy').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
     final groupedAssets = _groupAssetsByDay();
     final days = groupedAssets.entries.toList();
-
     final photos = assets.where((a) => a.type == AssetType.image).length;
-
     final videos = assets.where((a) => a.type == AssetType.video).length;
+
+
+    
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
@@ -206,79 +213,87 @@ class _GalleryState extends State<Gallery> {
           // onPanStart:
           // onPanUpdate:
           // onPanEnd:
-          child: ListView(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 10.0),
-                child: Text(
-                      "$photos Photos • $videos Videos",
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-              ),
+          child: DraggableScrollbar.semicircle(
+            backgroundColor: AppColors.primary,
+            heightScrollThumb: 48.0,
+            controller: _scrollController,
+            child: ListView(
+              controller: _scrollController,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6.0,
+                    vertical: 10.0,
+                  ),
+                  child: Text(
+                    "$photos Photos • $videos Videos",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
 
-              ...days.map((entry) {
-                final date = entry.key;
-                final dayAssets = entry.value;
+                ...days.map((entry) {
+                  final date = entry.key;
+                  final dayAssets = entry.value;
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Text(
-                        "${formatDate(date).toUpperCase()} (${dayAssets.length})",
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Text(
+                          "${formatDate(date).toUpperCase()} (${dayAssets.length})",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
-                    ),
 
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
 
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 4,
-                            mainAxisSpacing: 4,
-                          ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 4,
+                              mainAxisSpacing: 4,
+                            ),
 
-                      itemCount: dayAssets.length,
+                        itemCount: dayAssets.length,
 
-                      itemBuilder: (_, index) {
-                        final asset = dayAssets[index];
+                        itemBuilder: (_, index) {
+                          final asset = dayAssets[index];
 
-                        return AssetThumbnail(
-                          key: ValueKey(asset.id),
-                          asset: asset,
-                          isSelected: selectedAssets.contains(asset),
+                          return AssetThumbnail(
+                            key: ValueKey(asset.id),
+                            asset: asset,
+                            isSelected: selectedAssets.contains(asset),
 
-                          onTap: () {
-                            if (selectionMode) {
-                              _toggleSelection(asset);
-                            } else {
-                              _openAsset(
-                                assets.indexWhere((a) => a.id == asset.id),
-                              );
-                            }
-                          },
+                            onTap: () {
+                              if (selectionMode) {
+                                _toggleSelection(asset);
+                              } else {
+                                _openAsset(
+                                  assets.indexWhere((a) => a.id == asset.id),
+                                );
+                              }
+                            },
 
-                          onLongPress: () {
-                            _startSelection(asset);
-                          },
-                        );
-                      },
-                    ),
+                            onLongPress: () {
+                              _startSelection(asset);
+                            },
+                          );
+                        },
+                      ),
 
-                    const SizedBox(height: 20),
-                  ],
-                );
-              }).toList(),
-            ],
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                }).toList(),
+              ],
+            ),
           ),
         ),
       ),
