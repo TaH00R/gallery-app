@@ -7,7 +7,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
 class Gallery extends StatefulWidget {
-  const Gallery({super.key});
+  final AssetPathEntity? album;
+  const Gallery({super.key, this.album});
 
   @override
   State<Gallery> createState() => _GalleryState();
@@ -20,12 +21,26 @@ class _GalleryState extends State<Gallery> {
   bool selectionMode = false;
 
   Future<void> _fetchAssets() async {
-    final result = await PhotoManager.getAssetListRange(start: 0, end: 1000000);
-    if (!mounted) return;
-    setState(() {
-      assets = result;
-    });
+  List<AssetEntity> result;
+
+  if (widget.album == null) {
+    result = await PhotoManager.getAssetListRange(
+      start: 0,
+      end: 1000000,
+    );
+  } else {
+    result = await widget.album!.getAssetListPaged(
+      page: 0,
+      size: 200,
+    );
   }
+
+  if (!mounted) return;
+
+  setState(() {
+    assets = result;
+  });
+}
 
   void _toggleSelection(AssetEntity asset) {
     setState(() {
@@ -140,6 +155,7 @@ Future<void> shareAssets(List<AssetEntity> assets) async {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: GalleryAppBar(
+          title: widget.album?.name ?? "GALLERY",
           selectionMode: selectionMode,
           selectedCount: selectedAssets.length,
 
