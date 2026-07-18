@@ -19,6 +19,8 @@ class Gallery extends StatefulWidget {
   State<Gallery> createState() => _GalleryState();
 }
 
+enum SortMode { newest, oldest }
+
 class _GalleryState extends State<Gallery> {
   final ScrollController _scrollController = ScrollController();
   List<AssetEntity> allAssets = [];
@@ -27,6 +29,7 @@ class _GalleryState extends State<Gallery> {
   final Set<AssetEntity> selectedAssets = {};
   bool selectionMode = false;
   int selectedFilter = 0;
+  SortMode sortMode = SortMode.newest;
 
   final filters = ["All", "Photos", "Videos", "Favorites"];
 
@@ -65,6 +68,21 @@ class _GalleryState extends State<Gallery> {
         assets = allAssets.where((a) => a.isFavorite).toList();
         break;
     }
+    assets.sort((a, b) {
+      return sortMode == SortMode.newest
+          ? b.createDateTime.compareTo(a.createDateTime)
+          : a.createDateTime.compareTo(b.createDateTime);
+    });
+  }
+
+  void _toggleSort() {
+    setState(() {
+      sortMode = sortMode == SortMode.newest
+          ? SortMode.oldest
+          : SortMode.newest;
+
+      _applyFilter();
+    });
   }
 
   void _toggleSelection(AssetEntity asset) {
@@ -167,26 +185,23 @@ class _GalleryState extends State<Gallery> {
   }
 
   Future<void> _toggleFavoriteSelected() async {
-  if (selectedAssets.isEmpty) return;
+    if (selectedAssets.isEmpty) return;
 
-  final makeFavorite = !selectedAssets.every((e) => e.isFavorite);
+    final makeFavorite = !selectedAssets.every((e) => e.isFavorite);
 
-  for (final asset in selectedAssets) {
-    await PhotoManager.plugin.favoriteAsset(
-      asset.id,
-      makeFavorite,
-    );
+    for (final asset in selectedAssets) {
+      await PhotoManager.plugin.favoriteAsset(asset.id, makeFavorite);
+    }
+
+    await _fetchAssets();
+
+    if (!mounted) return;
+
+    setState(() {
+      selectedAssets.clear();
+      selectionMode = false;
+    });
   }
-
-  await _fetchAssets();
-
-  if (!mounted) return;
-
-  setState(() {
-    selectedAssets.clear();
-    selectionMode = false;
-  });
-}
 
   Map<DateTime, List<AssetEntity>> _groupAssetsByDay() {
     final Map<DateTime, List<AssetEntity>> grouped = {};
@@ -243,7 +258,9 @@ class _GalleryState extends State<Gallery> {
           onDelete: _deleteSelected,
           onShare: () => shareAssets(selectedAssets.toList()),
           onFavorite: _toggleFavoriteSelected,
-          isFavorite: selectedAssets.isNotEmpty && selectedAssets.every((e) => e.isFavorite), 
+          isFavorite:
+              selectedAssets.isNotEmpty &&
+              selectedAssets.every((e) => e.isFavorite),
         ),
       ),
 
@@ -269,13 +286,18 @@ class _GalleryState extends State<Gallery> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
+                      IconButton(
+                        onPressed: _toggleSort,
+                        icon: Icon(
+                          sortMode == SortMode.newest
+                              ? Icons.arrow_circle_down_outlined
+                              : Icons.arrow_circle_up_outlined,
+                          color: Colors.orange.shade700,
+                        ),
+                      ),
                       _chip(icon: Icons.apps, text: "All", index: 0),
                       const SizedBox(width: 8),
-                      _chip(
-                        icon: Icons.image_outlined,
-                        text: "IMG",
-                        index: 1,
-                      ),
+                      _chip(icon: Icons.image_outlined, text: "IMG", index: 1),
                       const SizedBox(width: 8),
                       _chip(
                         icon: Icons.videocam_outlined,
@@ -283,11 +305,7 @@ class _GalleryState extends State<Gallery> {
                         index: 2,
                       ),
                       const SizedBox(width: 8),
-                      _chip(
-                        icon: Icons.favorite_border,
-                        text: "FAV",
-                        index: 3,
-                      ),
+                      _chip(icon: Icons.favorite_border, text: "FAV", index: 3),
                     ],
                   ),
                 ),
