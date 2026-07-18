@@ -1,10 +1,12 @@
 import 'package:draggable_scrollbar/draggable_scrollbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:gallery/core/constants/colors.dart';
 import 'package:gallery/features/gallery/components/asset_thumbnail.dart';
 import 'package:gallery/features/gallery/components/gallery_viewer.dart';
 import 'package:gallery/shared/widgets/appbar.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
@@ -12,7 +14,6 @@ import 'package:intl/intl.dart';
 class Gallery extends StatefulWidget {
   final AssetPathEntity? album;
   const Gallery({super.key, this.album});
-  
 
   @override
   State<Gallery> createState() => _GalleryState();
@@ -24,6 +25,9 @@ class _GalleryState extends State<Gallery> {
   bool _isDeleting = false;
   final Set<AssetEntity> selectedAssets = {};
   bool selectionMode = false;
+  int selectedFilter = 0;
+
+  final filters = ["All", "Photos", "Videos", "Favorites"];
 
   Future<void> _fetchAssets() async {
     List<AssetEntity> result;
@@ -89,8 +93,8 @@ class _GalleryState extends State<Gallery> {
   void dispose() {
     _scrollController.dispose();
 
-      PhotoManager.removeChangeCallback(_onGalleryChanged);
-      PhotoManager.stopChangeNotify();
+    PhotoManager.removeChangeCallback(_onGalleryChanged);
+    PhotoManager.stopChangeNotify();
 
     super.dispose();
   }
@@ -181,9 +185,6 @@ class _GalleryState extends State<Gallery> {
     final photos = assets.where((a) => a.type == AssetType.image).length;
     final videos = assets.where((a) => a.type == AssetType.video).length;
 
-
-    
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
@@ -207,95 +208,174 @@ class _GalleryState extends State<Gallery> {
         ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.only(top: 4.0),
-        child: GestureDetector(
-          // onPanStart:
-          // onPanUpdate:
-          // onPanEnd:
-          child: DraggableScrollbar.semicircle(
-            backgroundColor: AppColors.primary,
-            heightScrollThumb: 48.0,
+      body: GestureDetector(
+        // onPanStart:
+        // onPanUpdate:
+        // onPanEnd:
+        child: DraggableScrollbar.semicircle(
+          backgroundColor: AppColors.primary,
+          heightScrollThumb: 48.0,
+          controller: _scrollController,
+          child: ListView(
+            scrollCacheExtent: ScrollCacheExtent.pixels(1000),
             controller: _scrollController,
-            child: ListView(
-              controller: _scrollController,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6.0,
-                    vertical: 10.0,
-                  ),
-                  child: Text(
-                    "$photos Photos • $videos Videos",
-                    style: Theme.of(context).textTheme.bodyMedium,
+            children: [
+              //Padding for the filter chips
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _chip(Icons.apps, "All", true),
+                      const SizedBox(width: 8),
+                      _chip(Icons.image_outlined, "$photos", false),
+                      const SizedBox(width: 8),
+                      _chip(Icons.videocam_outlined, "$videos", false),
+                      const SizedBox(width: 8),
+                      _chip(Icons.favorite_border, "Favs", false),
+                    ],
                   ),
                 ),
+              ),
+      
+              ...days.map((entry) {
+                final date = entry.key;
+                final dayAssets = entry.value;
 
-                ...days.map((entry) {
-                  final date = entry.key;
-                  final dayAssets = entry.value;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Text(
-                          "${formatDate(date).toUpperCase()} (${dayAssets.length})",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
+                //Padding and container for each day with a grid of assets
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 4.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Color(0xFFE7D8C8)),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 18,
+                          offset: Offset(0, 8),
+                          color: Colors.black.withOpacity(.05),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Padding for the date and item count
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.grass_outlined,
+                                size: 20,
+                                color: Colors.orange.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                formatDate(date),
+                                style: GoogleFonts.saira(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                        
+                              const Spacer(),
+                        
+                              Text(
+                                "${dayAssets.length} items",
+                                style: TextStyle(
+                                  color: Colors.orange.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
 
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 4,
-                              mainAxisSpacing: 4,
-                            ),
-
-                        itemCount: dayAssets.length,
-
-                        itemBuilder: (_, index) {
-                          final asset = dayAssets[index];
-
-                          return AssetThumbnail(
-                            key: ValueKey(asset.id),
-                            asset: asset,
-                            isSelected: selectedAssets.contains(asset),
-
-                            onTap: () {
-                              if (selectionMode) {
-                                _toggleSelection(asset);
-                              } else {
-                                _openAsset(
-                                  assets.indexWhere((a) => a.id == asset.id),
-                                );
-                              }
+                        // Grid of assets for the day
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0, right: 10.0, bottom: 5.0),
+                          child: GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                          
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                ),
+                          
+                            itemCount: dayAssets.length,
+                          
+                            itemBuilder: (_, index) {
+                              final asset = dayAssets[index];
+                          
+                              return AssetThumbnail(
+                                key: ValueKey(asset.id),
+                                asset: asset,
+                                isSelected: selectedAssets.contains(asset),
+                          
+                                onTap: () {
+                                  if (selectionMode) {
+                                    _toggleSelection(asset);
+                                  } else {
+                                    _openAsset(
+                                      assets.indexWhere((a) => a.id == asset.id),
+                                    );
+                                  }
+                                },
+                          
+                                onLongPress: () {
+                                  _startSelection(asset);
+                                },
+                              );
                             },
-
-                            onLongPress: () {
-                              _startSelection(asset);
-                            },
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 20),
-                    ],
-                  );
-                }).toList(),
-              ],
-            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _chip(IconData icon, String text, bool selected) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      decoration: BoxDecoration(
+        color: selected ? AppColors.primary : Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(blurRadius: 10, color: Colors.black.withValues(alpha: .06)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: selected ? Colors.white : Colors.black87),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: selected ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

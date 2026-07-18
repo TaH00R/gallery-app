@@ -50,9 +50,12 @@ class _AssetThumbnailState extends State<AssetThumbnail> {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Image.memory(
-                  bytes,
-                  fit: BoxFit.cover,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
 
