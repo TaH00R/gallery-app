@@ -4,17 +4,59 @@ import 'package:gallery/core/services/album_service.dart';
 import 'package:gallery/models/album.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+enum AlbumSort {
+  az,
+  za,
+}
 class AlbumProvider extends ChangeNotifier {
   final AlbumService _service = AlbumService();
 
+  List<Album> _allAlbums = [];
   List<Album> _albums = [];
   bool _loading = false;
 
   bool _initialized = false;
   bool _refreshing = false;
 
+  AlbumSort _currentSort = AlbumSort.az;
+  String _searchQuery = ""; 
+  
+
   List<Album> get albums => _albums;
   bool get isLoading => _loading;
+
+// Filter albums based on search query and sort order.
+  void search(String query) {
+  _searchQuery = query;
+  _applyFilters();
+  notifyListeners();
+}
+
+// Apply search and sort filters to the albums list.
+void sort(AlbumSort sort) {
+  _currentSort = sort;
+  _applyFilters();
+  notifyListeners();
+}
+
+// Apply search and sort filters to the albums list.
+void _applyFilters() {
+  _albums = _allAlbums.where((album) {
+    return album.name
+        .toLowerCase()
+        .contains(_searchQuery.toLowerCase());
+  }).toList();
+
+  switch (_currentSort) {
+    case AlbumSort.az:
+      _albums.sort((a, b) => a.name.compareTo(b.name));
+      break;
+
+    case AlbumSort.za:
+      _albums.sort((a, b) => b.name.compareTo(a.name));
+      break;
+  }
+}
 
   /// Initialize provider and start listening for gallery changes.
   Future<void> initialize() async {
@@ -48,7 +90,8 @@ class AlbumProvider extends ChangeNotifier {
         return;
       }
 
-      _albums = await _service.getAlbums();
+      _allAlbums = await _service.getAlbums();
+  _applyFilters();
     } catch (e) {
       debugPrint("AlbumProvider Error: $e");
     } finally {
