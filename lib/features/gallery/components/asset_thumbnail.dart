@@ -84,7 +84,7 @@ class _AssetThumbnailState extends State<AssetThumbnail> {
                   right: 6,
                   child: CircleAvatar(
                     radius: 12,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.brown,
                     child: Icon(
                       Icons.check,
                       color: Colors.white,

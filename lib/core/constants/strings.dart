@@ -1,3 +1,4 @@
+//Didn't even use most of them btw
 class AppStrings {
   AppStrings._();
 

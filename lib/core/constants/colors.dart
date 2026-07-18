@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+//very useful (proceeds to define colors in every screen)...
 class AppColors {
   AppColors._();
 
