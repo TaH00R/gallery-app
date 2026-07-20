@@ -1,7 +1,8 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:gallery/features/gallery/gallery_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoView extends StatefulWidget {
@@ -22,12 +23,10 @@ class _VideoViewState extends State<VideoView> {
 
   bool initialized = false;
   bool showUI = true;
-  bool isFavorite = false;
 
   @override
   void initState() {
     super.initState();
-    isFavorite = widget.asset.isFavorite;
     _initialize();
   }
 
@@ -55,63 +54,6 @@ class _VideoViewState extends State<VideoView> {
     }
   }
 
-  Future<void> _toggleFavorite() async {
-    await PhotoManager.plugin.favoriteAsset(
-      widget.asset.id,
-      !isFavorite,
-    );
-
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-  }
-
-  Future<void> _share() async {
-    final file = await widget.asset.originFile;
-
-    if (file == null) return;
-
-    await SharePlus.instance.share(
-      ShareParams(
-        files: [
-          XFile(file.path),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _delete() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Delete Video"),
-        content: const Text(
-          "This video will be permanently deleted.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    await PhotoManager.editor.deleteWithIds([
-      widget.asset.id,
-    ]);
-
-    if (mounted) {
-      Navigator.pop(context);
-    }
-  }
-
   @override
   void dispose() {
     _videoController?.dispose();
@@ -121,6 +63,7 @@ class _VideoViewState extends State<VideoView> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<GalleryProvider>();
     if (!initialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -143,9 +86,9 @@ class _VideoViewState extends State<VideoView> {
         actions: [
       
           IconButton(
-            onPressed: _toggleFavorite,
+            onPressed: () => provider.toggleFavoriteAsset(widget.asset),
             icon: Icon(
-              isFavorite
+              widget.asset.isFavorite
                   ? Icons.favorite
                   : Icons.favorite_border,
               color: const Color(0xffC76A3A),
@@ -153,12 +96,12 @@ class _VideoViewState extends State<VideoView> {
           ),
       
           IconButton(
-            onPressed: _share,
+            onPressed: () => provider.shareAsset(widget.asset),
             icon: const Icon(Icons.share),
           ),
       
           IconButton(
-            onPressed: _delete,
+            onPressed: () => provider.deleteAsset(widget.asset),
             icon: const Icon(Icons.delete_outline),
           ),
         ],
