@@ -277,6 +277,14 @@ class GalleryProvider extends ChangeNotifier {
     _isListening = false;
   }
 
+  AssetEntity? getAssetById(String id) {
+  try {
+    return _allAssets.firstWhere((a) => a.id == id);
+  } catch (_) {
+    return null;
+  }
+}
+
   @override
   void dispose() {
     stopListening();

@@ -41,11 +41,17 @@ void dispose() {
 void _openAsset(int index) {
   final provider = context.read<GalleryProvider>();
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => GalleryViewer(assets: provider.assets, initialIndex: index),
+  context,
+  MaterialPageRoute(
+    builder: (_) => ChangeNotifierProvider.value(
+      value: context.read<GalleryProvider>(),
+      child: GalleryViewer(
+        assets: provider.assets,
+        initialIndex: index,
       ),
-    );
+    ),
+  ),
+);
   }
 
   @override

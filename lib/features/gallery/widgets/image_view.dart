@@ -1,347 +1,298 @@
-  import 'dart:io';
+import 'dart:io';
 
-  import 'package:flutter/material.dart';
-  import 'package:gallery/features/gallery/gallery_provider.dart';
-  import 'package:intl/intl.dart';
-  import 'package:photo_manager/photo_manager.dart';
-  import 'package:photo_view/photo_view.dart';
-  import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
+import 'package:gallery/features/gallery/gallery_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:provider/provider.dart';
 
-  class ImageView extends StatefulWidget {
-    final AssetEntity asset;
+class ImageView extends StatefulWidget {
+  final AssetEntity asset;
 
-    const ImageView({
-      super.key,
-      required this.asset,
-    });
+  const ImageView({super.key, required this.asset});
 
-    @override
-    State<ImageView> createState() => _ImageViewState();
-  }
+  @override
+  State<ImageView> createState() => _ImageViewState();
+}
 
-  class _ImageViewState extends State<ImageView> {
-    bool showUI = true;
-    @override
-    Widget build(BuildContext context) {
-      final provider = context.watch<GalleryProvider>();
-      final date = widget.asset.createDateTime;
+class _ImageViewState extends State<ImageView> {
+  bool showUI = true;
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<GalleryProvider>();
+    final currentAsset = provider.getAssetById(widget.asset.id) ?? widget.asset;
+    final date = widget.asset.createDateTime;
 
+    final formattedDate = DateFormat("dd MMMM yyyy").format(date);
 
-      final formattedDate =
-          DateFormat("dd MMMM yyyy").format(date);
+    final formattedTime = DateFormat("hh:mm a").format(date);
 
-      final formattedTime =
-          DateFormat("hh:mm a").format(date);
-
-      return FutureBuilder<File?>(
-        future: widget.asset.file,
-        builder: (_, snapshot) {
-          if (!snapshot.hasData) {
-            return const Scaffold(
-              backgroundColor: Colors.black,
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-
-          final file = snapshot.data!;
-
-          return Scaffold(
+    return FutureBuilder<File?>(
+      future: widget.asset.file,
+      builder: (_, snapshot) {
+        if (!snapshot.hasData) {
+          return const Scaffold(
             backgroundColor: Colors.black,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-            appBar: PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: AnimatedOpacity(
-                opacity: showUI ? 1 : 0,
-                duration: const Duration(milliseconds: 250),
-                child: AppBar(
-                  backgroundColor: Colors.black.withOpacity(.35),
-                  elevation: 0,
-                  leading: const BackButton(
-                    color: Colors.white,
-                  ),
-                  titleSpacing: 0,
+        final file = snapshot.data!;
 
-                  title: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        formattedDate,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        formattedTime,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
+        return Scaffold(
+          backgroundColor: Colors.black,
 
-                  actions: [
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(kToolbarHeight),
+            child: AnimatedOpacity(
+              opacity: showUI ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: AppBar(
+                backgroundColor: Colors.black.withOpacity(.35),
+                elevation: 0,
+                leading: const BackButton(color: Colors.white),
+                titleSpacing: 0,
 
-                    IconButton(
-                      onPressed: () => provider.toggleFavoriteAsset(widget.asset),
-                      icon: Icon(
-                        widget.asset.isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: const Color(0xffC76A3A),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formattedDate,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Text(
+                      formattedTime,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
 
-                    PopupMenuButton(
-                      color: Colors.grey.shade900,
-                      iconColor: Colors.white,
-                      itemBuilder: (_) => [
-                        const PopupMenuItem(
-                          value: 0,
-                          child: Text("Details"),
-                        ),
-                      ],
+                actions: [
+                  IconButton(
+                    onPressed: () async {
+                      await provider.toggleFavoriteAsset(currentAsset);
+
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                    icon: Icon(
+                      currentAsset.isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: const Color(0xffC76A3A),
+                    ),
+                  ),
+
+                  PopupMenuButton(
+                    color: Colors.grey.shade900,
+                    iconColor: Colors.white,
+                    itemBuilder: (_) => [
+                      const PopupMenuItem(value: 0, child: Text("Details")),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          body: GestureDetector(
+            onTap: () {
+              setState(() {
+                showUI = !showUI;
+              });
+            },
+
+            child: PhotoView(
+              imageProvider: FileImage(file),
+              backgroundDecoration: const BoxDecoration(color: Colors.black),
+            ),
+          ),
+          bottomNavigationBar: AnimatedOpacity(
+            opacity: showUI ? 1 : 0,
+            duration: const Duration(milliseconds: 250),
+            child: SafeArea(
+              child: Container(
+                color: Colors.black.withOpacity(.9),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _BottomAction(
+                      icon: Icons.delete_outline,
+                      label: "Delete",
+                      onTap: () => provider.deleteAsset(widget.asset),
+                    ),
+
+                    _BottomAction(
+                      icon: Icons.share_outlined,
+                      label: "Share",
+                      onTap: () => provider.shareAsset(widget.asset),
+                    ),
+
+                    _BottomAction(
+                      icon: Icons.info_outline,
+                      label: "Info",
+                      onTap: () {
+                        _showDetails(file);
+                      },
                     ),
                   ],
                 ),
               ),
             ),
-
-            body: GestureDetector(
-              onTap: () {
-                setState(() {
-                  showUI = !showUI;
-                });
-              },
-
-              child: PhotoView(
-                imageProvider: FileImage(file),
-                backgroundDecoration:
-                    const BoxDecoration(
-                  color: Colors.black,
-                ),
-              ),
-            ),
-                      bottomNavigationBar: AnimatedOpacity(
-              opacity: showUI ? 1 : 0,
-              duration: const Duration(milliseconds: 250),
-              child: SafeArea(
-                child: Container(
-                  color: Colors.black.withOpacity(.9),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 10,
-                  ),
-                  child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceEvenly,
-                    children: [
-
-                      _BottomAction(
-                        icon: Icons.delete_outline,
-                        label: "Delete",
-                        onTap: () => provider.deleteAsset(widget.asset),
-                      ),
-
-                      _BottomAction(
-                        icon: Icons.share_outlined,
-                        label: "Share",
-                        onTap: () => provider.shareAsset(widget.asset),
-                      ),
-
-                      _BottomAction(
-                        icon: Icons.info_outline,
-                        label: "Info",
-                        onTap: () {
-                          _showDetails(file);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    }
-
-    void _showDetails(File file) async {
-      final size =
-          (await file.length() / (1024 * 1024))
-              .toStringAsFixed(2);
-
-      if (!mounted) return;
-
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: const Color(0xff181818),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
           ),
-        ),
-        builder: (_) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(22),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-
-                  const Text(
-                    "Image Details",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  _InfoTile(
-                    icon: Icons.calendar_today,
-                    title: "Created",
-                    value: DateFormat(
-                      "dd MMM yyyy  hh:mm a",
-                    ).format(
-                      widget.asset.createDateTime,
-                    ),
-                  ),
-
-                  _InfoTile(
-                    icon: Icons.photo_size_select_large,
-                    title: "Resolution",
-                    value:
-                        "${widget.asset.width} × ${widget.asset.height}",
-                  ),
-
-                  _InfoTile(
-                    icon: Icons.storage,
-                    title: "Size",
-                    value: "$size MB",
-                  ),
-
-                  _InfoTile(
-                    icon: Icons.folder,
-                    title: "Path",
-                    value: file.path,
-                  ),
-
-                  const SizedBox(height: 15),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
+        );
+      },
+    );
   }
 
-  class _BottomAction extends StatelessWidget {
-    final IconData icon;
-    final String label;
-    final VoidCallback onTap;
+  void _showDetails(File file) async {
+    final size = (await file.length() / (1024 * 1024)).toStringAsFixed(2);
 
-    const _BottomAction({
-      required this.icon,
-      required this.label,
-      required this.onTap,
-    });
+    if (!mounted) return;
 
-    @override
-    Widget build(BuildContext context) {
-      return InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 8,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-
-              Icon(
-                icon,
-                color: const Color(0xffC76A3A),
-              ),
-
-              const SizedBox(height: 5),
-
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xff181818),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Image Details",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 25),
+
+                _InfoTile(
+                  icon: Icons.calendar_today,
+                  title: "Created",
+                  value: DateFormat(
+                    "dd MMM yyyy  hh:mm a",
+                  ).format(widget.asset.createDateTime),
+                ),
+
+                _InfoTile(
+                  icon: Icons.photo_size_select_large,
+                  title: "Resolution",
+                  value: "${widget.asset.width} × ${widget.asset.height}",
+                ),
+
+                _InfoTile(
+                  icon: Icons.storage,
+                  title: "Size",
+                  value: "$size MB",
+                ),
+
+                _InfoTile(icon: Icons.folder, title: "Path", value: file.path),
+
+                const SizedBox(height: 15),
+              ],
+            ),
           ),
-        ),
-      );
-    }
+        );
+      },
+    );
   }
-  class _InfoTile extends StatelessWidget {
-    final IconData icon;
-    final String title;
-    final String value;
+}
 
-    const _InfoTile({
-      required this.icon,
-      required this.title,
-      required this.value,
-    });
+class _BottomAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
-    @override
-    Widget build(BuildContext context) {
-      return Padding(
-        padding:
-            const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+  const _BottomAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(icon, color: const Color(0xffC76A3A)),
 
-            Icon(
-              icon,
-              color: const Color(0xffC76A3A),
-            ),
+            const SizedBox(height: 5),
 
-            const SizedBox(width: 14),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
   }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xffC76A3A)),
+
+          const SizedBox(width: 14),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(value, style: const TextStyle(color: Colors.white70)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
