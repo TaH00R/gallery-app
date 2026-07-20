@@ -71,7 +71,7 @@ lib/
 Clone the repository
 
 ```bash
-git clone https://github.com/TaH00R/gallery.git
+git clone https://github.com/TaH00R/gallery-app.git
 ```
 
 Install dependencies
