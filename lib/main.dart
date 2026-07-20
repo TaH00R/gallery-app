@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gallery/features/gallery/gallery_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'package:gallery/app/app.dart';
@@ -10,6 +11,9 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (_) => AlbumProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => GalleryProvider(),
         ),
       ],
       child: const MyApp(),

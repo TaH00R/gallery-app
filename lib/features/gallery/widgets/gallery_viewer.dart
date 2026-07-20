@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gallery/features/gallery/components/image_view.dart';
-import 'package:gallery/features/gallery/components/video_view.dart';
+import 'package:gallery/features/gallery/widgets/image_view.dart';
+import 'package:gallery/features/gallery/widgets/video_view.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 class GalleryViewer extends StatefulWidget {

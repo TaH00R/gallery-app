@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gallery/features/gallery/gallery.dart';
+import 'package:gallery/features/gallery/screens/gallery.dart';
 import 'package:gallery/models/album.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';

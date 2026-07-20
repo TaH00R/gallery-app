@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gallery/features/about/about_screen.dart';
 import 'package:gallery/features/albums/album_screen.dart';
-import 'package:gallery/features/gallery/gallery.dart';
+import 'package:gallery/features/gallery/screens/gallery.dart';
 import 'package:gallery/shared/widgets/bottom_navbar.dart';
 
 class HomeScreen extends StatefulWidget {
