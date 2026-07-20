@@ -64,6 +64,7 @@ class _VideoViewState extends State<VideoView> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<GalleryProvider>();
+    final currentAsset = provider.getAssetById(widget.asset.id) ?? widget.asset;
     if (!initialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -86,14 +87,20 @@ class _VideoViewState extends State<VideoView> {
         actions: [
       
           IconButton(
-            onPressed: () => provider.toggleFavoriteAsset(widget.asset),
-            icon: Icon(
-              widget.asset.isFavorite
-                  ? Icons.favorite
-                  : Icons.favorite_border,
-              color: const Color(0xffC76A3A),
-            ),
-          ),
+                    onPressed: () async {
+                      await provider.toggleFavoriteAsset(currentAsset);
+
+                      if (mounted) {
+                        setState(() {});
+                      }
+                    },
+                    icon: Icon(
+                      currentAsset.isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: const Color(0xffC76A3A),
+                    ),
+                  ),
       
           IconButton(
             onPressed: () => provider.shareAsset(widget.asset),
