@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gallery/features/about/about_screen.dart';
-import 'package:gallery/features/albums/album_screen.dart';
+import 'package:gallery/features/albums/screens/album_screen.dart';
+import 'package:gallery/features/gallery/gallery_provider.dart';
 import 'package:gallery/features/gallery/screens/gallery.dart';
 import 'package:gallery/shared/widgets/bottom_navbar.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,7 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   body: IndexedStack(
     index: selectedIndex,
     children: [
-      Gallery(),
+      ChangeNotifierProvider(
+      create: (_) => GalleryProvider(),
+      child: const Gallery(),
+    ),
       AlbumScreen(),
       AboutScreen(),
         ],

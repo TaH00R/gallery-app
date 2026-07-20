@@ -50,6 +50,7 @@ void _openAsset(int index) {
 
   @override
   Widget build(BuildContext context) {
+    
   final provider = context.watch<GalleryProvider>();
   
     final groupedAssets = groupAssetsByDay(provider.assets);

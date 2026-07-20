@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gallery/core/services/album_service.dart';
+import 'package:gallery/features/albums/services/album_service.dart';
 import 'package:gallery/models/album.dart';
 import 'package:photo_manager/photo_manager.dart';
 

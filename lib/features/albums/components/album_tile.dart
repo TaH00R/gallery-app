@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:gallery/features/gallery/gallery_provider.dart';
 import 'package:gallery/features/gallery/screens/gallery.dart';
 import 'package:gallery/models/album.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:provider/provider.dart';
 
 class AlbumTile extends StatelessWidget {
   final Album album;
@@ -12,14 +14,18 @@ class AlbumTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => Gallery(album: album.entity)),
+            MaterialPageRoute(
+              builder: (_) => ChangeNotifierProvider(
+                create: (_) => GalleryProvider(album: album.entity),
+                child: Gallery(album: album.entity),
+              ),
+            ),
           );
         },
         child: SizedBox(
@@ -37,7 +43,7 @@ class AlbumTile extends StatelessWidget {
                     child: _photo(album.cover!),
                   ),
                 ),
-              
+
               // Back Photo 2
               if (album.cover != null)
                 Positioned(
@@ -48,7 +54,7 @@ class AlbumTile extends StatelessWidget {
                     child: _photo(album.cover!),
                   ),
                 ),
-              
+
               // Front Paper
               Positioned.fill(
                 child: Container(
@@ -71,7 +77,7 @@ class AlbumTile extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               // Paper Clip
               Positioned(
                 top: -10,
@@ -85,7 +91,7 @@ class AlbumTile extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               // Content
               Positioned.fill(
                 child: Padding(
@@ -98,9 +104,9 @@ class AlbumTile extends StatelessWidget {
                         size: 42,
                         color: Colors.brown.shade700,
                       ),
-              
+
                       const SizedBox(height: 12),
-              
+
                       SizedBox(
                         width: 150,
                         child: Stack(
@@ -111,7 +117,7 @@ class AlbumTile extends StatelessWidget {
                               width: 150,
                               fit: BoxFit.contain,
                             ),
-              
+
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -131,7 +137,7 @@ class AlbumTile extends StatelessWidget {
                           ],
                         ),
                       ),
-          
+
                       Text(
                         "${album.count} items",
                         style: TextStyle(
