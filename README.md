@@ -4,6 +4,8 @@
 
 Gallery is a lightweight photo and video gallery focused on clean design, smooth interactions, and an autumn-inspired interface. It provides an intuitive way to browse media while staying fast and responsive.
 
+**[Download Gallery v1.0.0](https://github.com/TaH00R/gallery-app/releases/tag/Release01)**
+
 ---
 
 ## Features
